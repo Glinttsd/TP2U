@@ -3,7 +3,7 @@
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Platform: FPGA](https://img.shields.io/badge/Platform-AMD%20VCU128-orange.svg)](https://www.xilinx.com/products/boards-and-kits/vcu128.html)
 
-**TP²U** is a software-hardware co-design framework developed to accelerate the Clebsch-Gordan tensor product (CGTP)[cite: 26, 224]. CGTP is the primary computational bottleneck in Equivariant Neural Networks (ENNs), which are widely used for modeling 3D geometric data in physical and biological systems [cite: 23-24, 72].
+**TP²U** is a software-hardware co-design framework developed to accelerate the Clebsch-Gordan tensor product (CGTP)]. CGTP is the primary computational bottleneck in Equivariant Neural Networks (ENNs), which are widely used for modeling 3D geometric data in physical and biological systems.
 
 ---
 
@@ -13,19 +13,19 @@
   <img src="assets/compute_dataflow.png" alt="Illustration of the Clebsch-Gordan tensor product (CGTP) computation flow" width="600"/>
 </p>
 <p align="center">
-  <em>Figure 1: Shows the interaction between input irreps, CG coefficients, and learned weights through outer product, Hadamard product, and reduced sum operations <sup>[cite: 172]</sup>.</em>
+  <em>Figure 1: Shows the interaction between input irreps, CG coefficients, and learned weights through outer product, Hadamard product, and reduced sum operations <sup></sup>.</em>
 </p>
 
 ### Key Innovations
-* **Sparse-Bypass Strategy (SBS):** Exploits the inherent structural sparsity of CG coefficients (>80%)[cite: 27, 581]. It uses a novel CG data format to pack overlapping non-zeros, bypassing redundant data accesses and computations[cite: 28, 746].
-* **Merged-Shift Quantization (MSQ):** Enables full Int8 representation for irreps, weights, and CG coefficients[cite: 29, 229]. It replaces complex operations with hardware-friendly, shift-only dequantization [cite: 29-30, 953].
-* **Equicore Unit:** A cascaded processing unit that tightly couples FPGA logic with RAM and DSP resources[cite: 30, 231]. It simplifies logic data paths to achieve a high operating frequency of **500 MHz**[cite: 232, 1131].
+* **Sparse-Bypass Strategy (SBS):** Exploits the inherent structural sparsity of CG coefficients (>80%). It uses a novel CG data format to pack overlapping non-zeros, bypassing redundant data accesses and computations.
+* **Merged-Shift Quantization (MSQ):** Enables full Int8 representation for irreps, weights, and CG coefficients. It replaces complex operations with hardware-friendly, shift-only dequantization.
+* **Equicore Unit:** A cascaded processing unit that tightly couples FPGA logic with RAM and DSP resources. It simplifies logic data paths to achieve a high operating frequency of **500 MHz**.
 
 ---
 
 ## 🏗️ Hardware Architecture
 
-The $TP^{2}U$ system consists of a host CPU, high-bandwidth memory (HBM), and the FPGA hardware accelerator[cite: 1001].
+The $TP^{2}U$ system consists of a host CPU, high-bandwidth memory (HBM), and the FPGA hardware accelerator.
 
 <p align="center">
   <img src="assets/architecture.png" alt="Illustration of the Clebsch-Gordan tensor product (CGTP) computation flow" width="300"/>
@@ -35,7 +35,7 @@ The $TP^{2}U$ system consists of a host CPU, high-bandwidth memory (HBM), and th
 </p>
 
 ### Resource Utilization (AMD Virtex VCU128)
-As reported after synthesis and implementation in Vivado 2024.1[cite: 1546]:
+As reported after synthesis and implementation in Vivado 2024.1:
 
 | Resource | Used | Available | Utilization |
 | :--- | :--- | :--- | :--- |
@@ -48,14 +48,14 @@ As reported after synthesis and implementation in Vivado 2024.1[cite: 1546]:
 
 ## 🚀 Software Compilation & ISA
 
-The host CPU partitions MIMO tasks into independent SISO tasks [cite: 1002, 1252] and generates 32-bit customized instructions to orchestrate the hardware[cite: 1447].
+The host CPU partitions MIMO tasks into independent SISO tasks and generates 32-bit customized instructions to orchestrate the hardware.
 
-> **[Insert Figure 13: Customized instructions for executing CGTP operations]** > *(Description: Details the ISA including CFG, SETL, SETN, LOAD, MOVE, EXEC, and HALT instructions [cite: 1446-1451].)*
+> **[Insert Figure 13: Customized instructions for executing CGTP operations]** > *(Description: Details the ISA including CFG, SETL, SETN, LOAD, MOVE, EXEC, and HALT instructions.)*
 
 ### Workflow
-1. **Offline Quantization:** The host performs MSQ on irreps, weights, and CG coefficients[cite: 1251].
-2. **Instruction Generation:** The compiler generates a specific instruction stream for each SISO task[cite: 1447].
-3. **Deployment:** Instructions are loaded into the FPGA DDR, and data is transferred to HBM via PCIe [cite: 1003-1004].
+1. **Offline Quantization:** The host performs MSQ on irreps, weights, and CG coefficients.
+2. **Instruction Generation:** The compiler generates a specific instruction stream for each SISO task.
+3. **Deployment:** Instructions are loaded into the FPGA DDR, and data is transferred to HBM via PCIe.
 
 ---
 
@@ -63,8 +63,8 @@ The host CPU partitions MIMO tasks into independent SISO tasks [cite: 1002, 1252
 
 ### Performance & Efficiency
 Compared to state-of-the-art GPU libraries (e3nn, OpenEquivariance), $TP^{2}U$ delivers:
-* **Speedup:** Up to **10.5x** over e3nn and **5.3x** over OpenEquivariance[cite: 31, 1591].
-* **Energy Efficiency:** Up to **17.4x** improvement over e3nn[cite: 31, 1593].
+* **Speedup:** Up to **10.5x** over e3nn and **5.3x** over OpenEquivariance.
+* **Energy Efficiency:** Up to **17.4x** improvement over e3nn.
 
 <p align="center">
   <img src="assets/latency_and_power_efficiency_comparison_Journal_V1.png" alt="Speedup and energy efficiency comparison of Equicore with GPU-based works" width="600"/>
