@@ -1,0 +1,2 @@
+[console_scripts]
+mimo-tvm-flow = mimo_tvm_flow.cli:main

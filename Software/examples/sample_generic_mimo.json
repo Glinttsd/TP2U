@@ -1,0 +1,56 @@
+{
+  "name": "sample_generic_mimo",
+  "inputs": [
+    {
+      "id": "x1",
+      "dim": 16
+    },
+    {
+      "id": "x2",
+      "dim": 8
+    }
+  ],
+  "nodes": [
+    {
+      "id": "mimo_0",
+      "kind": "generic_mimo",
+      "connection_mode": "uvw",
+      "input_a": "x1",
+      "input_b": "x2",
+      "output": "y0",
+      "x1_dim": 16,
+      "x2_dim": 8,
+      "out_dim": 12,
+      "weight_dim": 48,
+      "multiplicity": 3,
+      "metadata": {
+        "stage": "demo",
+        "family": "sample"
+      }
+    },
+    {
+      "id": "mimo_1",
+      "kind": "generic_mimo",
+      "connection_mode": "uvu",
+      "input_a": "y0",
+      "input_b": "x2",
+      "output": "y1",
+      "x1_dim": 12,
+      "x2_dim": 8,
+      "out_dim": 6,
+      "weight_dim": 24,
+      "multiplicity": 2,
+      "metadata": {
+        "stage": "demo",
+        "family": "sample"
+      }
+    }
+  ],
+  "outputs": [
+    "y1"
+  ],
+  "metadata": {
+    "source": "manual_example",
+    "description": "A compact example showing generic MIMO -> TVM -> SISO -> bin flow."
+  }
+}

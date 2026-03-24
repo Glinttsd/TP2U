@@ -1,0 +1,9 @@
+apache-tvm==0.11.1
+numpy<2,>=1.24
+
+[problem-model]
+torch>=2.1
+e3nn>=0.5
+
+[pytorch]
+torch>=2.1

@@ -1,3 +1,18 @@
+Metadata-Version: 2.1
+Name: mimo-tvm-flow
+Version: 0.1.0
+Summary: An open-source workflow skeleton for converting generic MIMO specs into TVM IR, splitting into SISO, and packing bin artifacts.
+Requires-Python: >=3.8
+Description-Content-Type: text/markdown
+License-File: LICENSE
+Requires-Dist: apache-tvm==0.11.1
+Requires-Dist: numpy<2,>=1.24
+Provides-Extra: problem-model
+Requires-Dist: torch>=2.1; extra == "problem-model"
+Requires-Dist: e3nn>=0.5; extra == "problem-model"
+Provides-Extra: pytorch
+Requires-Dist: torch>=2.1; extra == "pytorch"
+
 # MIMO TVM Flow
 
 `MIMO TVM Flow` 是一个面向开源整理的流程骨架，用来把“任意输入的 MIMO 描述”变成：
@@ -64,12 +79,6 @@
 pip install -e .
 ```
 
-如果你希望一次装好内置 `problem-model` 和 PyTorch 示例需要的依赖，可以使用：
-
-```bash
-pip install -e ".[problem-model,pytorch]"
-```
-
 或者只安装最小依赖：
 
 ```bash
@@ -83,7 +92,6 @@ pip install -r requirements.txt
 见：
 
 - `examples/sample_generic_mimo.json`
-- `examples/builtin_problem_models.json`
 
 核心字段：
 
@@ -120,7 +128,6 @@ python -m mimo_tvm_flow \
 这个模式会从仓库内置的 11 个 problem-model 定义派生一个“结构级 MIMO 视图”，再走后续 TVM / SISO / 打包流程。内置模型目录位于：
 
 - `src/mimo_tvm_flow/model_catalog.py`
-- `examples/builtin_problem_models.json`
 
 ### 方式 3：PyTorch 前端示例
 
@@ -257,7 +264,7 @@ opensource_flow/
 
 - 这是一个开源流程骨架，不是完整的生产级 TVM 后端
 - 当前 TVM lowering 使用的是通用的 Relay 表达，不绑定某个特定硬件后端
-- bin 打包格式是一个通用示例格式，借鉴了 7-word instruction 风格，但不等价于某个特定 FPGA kernel 的完整语义
+- bin 打包格式是一个通用示例格式，借鉴了当前仓库的 7-word instruction 风格，但不等价于你现有 FPGA kernel 的完整语义
 - `--problem-model` 使用的是仓库内置模型目录，目的是演示结构适配流程，而不是复刻外部私有工程的全部运行时细节
 
 ## 后续建议
