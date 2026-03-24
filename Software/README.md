@@ -68,6 +68,56 @@ python -m mimo_tvm_flow \
   --output-dir outputs/pytorch_demo
 ```
 
+### 4. Your own PyTorch or e3nn layer
+
+Create a small adapter script that returns a model bundle, then run:
+
+```bash
+python -m mimo_tvm_flow \
+  --pytorch-script examples/pytorch_e3nn_template.py \
+  --pytorch-entry build_model_bundle \
+  --output-dir outputs/user_layer
+```
+
+Use `examples/pytorch_e3nn_template.py` as the starting point. Replace the demo module with your own `torch.nn.Module` or `e3nn` layer, and keep the returned bundle fields:
+
+- `model`: the PyTorch model to trace with `torch.fx`
+- `sample_inputs`: example tensors used to describe input dimensions
+- `nodes`: MIMO-level node descriptions that will be converted into `NodeSpec`
+- `outputs`: optional output names
+
+## Workflow
+
+The pipeline is:
+
+1. Start from a generic JSON spec, a built-in `problem-model`, or a PyTorch/e3nn module.
+2. Normalize the input into a common `GraphSpec`.
+3. Lower the graph into TVM Relay IR.
+4. Expand each MIMO node into multiple SISO units according to `multiplicity`.
+5. Group SISO units by structural signature for analysis.
+6. Pack each SISO unit into demo payload bytes and a 7-word instruction sequence.
+
+In the current implementation:
+
+- the PyTorch frontend is defined in `src/mimo_tvm_flow/pytorch_frontend.py`
+- SISO splitting is implemented in `src/mimo_tvm_flow/siso.py`
+- bin packing is implemented in `src/mimo_tvm_flow/packing.py`
+
+## From e3nn PyTorch to SISO and bin
+
+If your layer is written in PyTorch with `e3nn`, the expected usage is:
+
+1. Wrap the layer in a small Python file that exposes `build_model_bundle()`.
+2. Return your model plus a lightweight node description with:
+   `connection_mode`, `x1_dim`, `x2_dim`, `out_dim`, `weight_dim`, and `multiplicity`.
+3. Run `mimo_tvm_flow` with `--pytorch-script`.
+4. Inspect:
+   - `00_pytorch_fx_graph.txt` / `.svg` for the traced frontend graph
+   - `04_siso_units.json` for expanded SISO units
+   - `05_pack_summary.json` for payload and instruction-stream statistics
+
+Today, the tool does not automatically infer all e3nn tensor-product semantics from an arbitrary model. The recommended pattern is to provide the structural node metadata explicitly in the bundle, then let the pipeline handle IR export, SISO expansion, and bin generation.
+
 ## Main Outputs
 
 Each run generates staged artifacts under the chosen output directory, including:
