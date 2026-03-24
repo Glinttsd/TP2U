@@ -1,147 +1,44 @@
 # MIMO TVM Flow
 
-`MIMO TVM Flow` 是一个面向开源整理的流程骨架，用来把“任意输入的 MIMO 描述”变成：
+`MIMO TVM Flow` is a lightweight open-source workflow for converting a generic MIMO description into:
 
-1. 可导入 TVM 的统一 JSON 表达
-2. TVM Relay IR
-3. SISO 拆分结果
-4. 可落盘的 `packet_data.bin` / `instruction_stream.bin`
+1. a TVM-importable JSON format,
+2. TVM Relay IR,
+3. expanded SISO units,
+4. demo `packet_data.bin` and `instruction_stream.bin` artifacts.
 
-同时，它会在每个阶段输出结构化信息和图片，方便调试、讲解、教学和二次开发。
+The repository is designed for understanding and prototyping the full path from high-level graph construction to IR lowering, SISO decomposition, and binary packing.
 
 ![pipeline overview](docs/assets/pipeline_overview.svg)
 
-## 特性
-
-- 支持三种输入方式：
-  - 自定义 JSON MIMO 规范
-  - 内置 problem-model 目录中的结构化模型输入
-  - PyTorch 前端示例输入
-- 自动生成阶段化产物：
-  - `01_input_graph.json`
-  - `01_input_graph.svg`
-  - `02_tvm_importable.json`
-  - `03_relay_module.txt`
-  - `04_siso_units.json`
-  - `04_siso_groups.json`
-  - `04_siso_graph.svg`
-  - `05_packet_data.bin`
-  - `05_instruction_stream.bin`
-  - `06_pipeline_report.md`
-- 对“结构重复”和“真实可打包内容”做了显式区分
-- 适合作为开源仓库的起点，而不是只适合本地实验
-
-## 适用场景
-
-- 想把定制 MIMO 表达变成 TVM 可理解的中间表示
-- 想展示从高层图到 SISO 拆分、再到 bin 打包的全过程
-- 想为后续编译器 / 硬件协同工作提供一份整洁的开源流程
-
-## 环境要求
-
-### 最小环境
+## Requirements
 
 - Python 3.8+
 - `apache-tvm==0.11.1`
 - `numpy`
 
-### 可选环境
+Optional:
 
-如果要使用内置的 `--problem-model` 目录，需要：
+- `torch` for the PyTorch frontend example
+- `torch` and `e3nn` for the built-in `--problem-model` catalog
 
-- `torch`
-- `e3nn`
+## Installation
 
-如果要使用 PyTorch 前端示例，也需要：
-
-- `torch`
-
-## 安装
-
-在当前目录下：
+Minimal install:
 
 ```bash
 pip install -e .
 ```
 
-如果你希望一次装好内置 `problem-model` 和 PyTorch 示例需要的依赖，可以使用：
+Install with optional frontends:
 
 ```bash
 pip install -e ".[problem-model,pytorch]"
 ```
 
-或者只安装最小依赖：
+## Quick Start
 
-```bash
-pip install -r requirements.txt
-```
-
-## 输入格式
-
-### 方式 1：通用 JSON
-
-见：
-
-- `examples/sample_generic_mimo.json`
-- `examples/builtin_problem_models.json`
-
-核心字段：
-
-- `inputs`
-- `nodes`
-- `outputs`
-
-每个 node 至少包含：
-
-- `id`
-- `connection_mode`
-- `input_a`
-- `input_b`
-- `output`
-- `x1_dim`
-- `x2_dim`
-- `out_dim`
-- `weight_dim`
-- `multiplicity`
-
-其中 `multiplicity` 表示该 MIMO 节点最终会拆成多少个同结构 SISO 单元。
-
-### 方式 2：从内置 problem-model 目录适配
-
-例如：
-
-```bash
-python -m mimo_tvm_flow \
-  --problem-model DiffDock-L=1 \
-  --batch-size 3000 \
-  --output-dir outputs/diffdock_l1
-```
-
-这个模式会从仓库内置的 11 个 problem-model 定义派生一个“结构级 MIMO 视图”，再走后续 TVM / SISO / 打包流程。内置模型目录位于：
-
-- `src/mimo_tvm_flow/model_catalog.py`
-- `examples/builtin_problem_models.json`
-
-### 方式 3：PyTorch 前端示例
-
-例如：
-
-```bash
-python -m mimo_tvm_flow \
-  --pytorch-example tiny_dual_input \
-  --output-dir outputs/pytorch_demo
-```
-
-这个模式会：
-
-- 构建一个双输入 PyTorch demo model
-- 用 `torch.fx` 做符号跟踪
-- 导出 FX graph 文本和 SVG
-- 再把前端结果映射成统一的 GraphSpec，继续进入 TVM / SISO / bin 流程
-
-## 快速开始
-
-### 1. 用通用 JSON 示例运行
+### 1. Generic JSON input
 
 ```bash
 python -m mimo_tvm_flow \
@@ -149,7 +46,7 @@ python -m mimo_tvm_flow \
   --output-dir outputs/sample_generic
 ```
 
-### 2. 用内置 problem-model 运行
+### 2. Built-in problem-model input
 
 ```bash
 python -m mimo_tvm_flow \
@@ -158,7 +55,12 @@ python -m mimo_tvm_flow \
   --output-dir outputs/diffdock_l1
 ```
 
-### 3. 用 PyTorch 前端示例运行
+Built-in model definitions are included in:
+
+- `src/mimo_tvm_flow/model_catalog.py`
+- `examples/builtin_problem_models.json`
+
+### 3. PyTorch frontend example
 
 ```bash
 python -m mimo_tvm_flow \
@@ -166,103 +68,20 @@ python -m mimo_tvm_flow \
   --output-dir outputs/pytorch_demo
 ```
 
-## 输出说明
+## Main Outputs
 
-### 00 PyTorch 前端阶段
+Each run generates staged artifacts under the chosen output directory, including:
 
-- `00_pytorch_model.txt`
-  - PyTorch 模型结构文本
-- `00_pytorch_fx_graph.txt`
-  - `torch.fx` 图文本
-- `00_pytorch_fx_graph.svg`
-  - FX 图可视化
-- `00_pytorch_summary.json`
-  - 前端摘要
+- input graph JSON and SVG
+- TVM-importable JSON
+- Relay IR text
+- SISO units and grouped signatures
+- demo `packet_data.bin`
+- demo `instruction_stream.bin`
+- a final Markdown report
 
-### 01 输入阶段
+## Notes
 
-- `01_input_graph.json`
-  - 原始 MIMO 规范
-- `01_input_graph.svg`
-  - 输入图可视化
-- `01_input_summary.md`
-  - 输入规模、节点信息摘要
-
-### 02 TVM 可导入阶段
-
-- `02_tvm_importable.json`
-  - 规范化后的图结构
-
-### 03 TVM IR 阶段
-
-- `03_relay_module.txt`
-  - TVM Relay IR 文本
-- `03_relay_summary.json`
-  - Relay 输入 / 节点 / 输出摘要
-
-### 04 SISO 拆分阶段
-
-- `04_siso_units.json`
-  - 展开后的全部 SISO 单元
-- `04_siso_groups.json`
-  - 按结构签名分组后的结果
-- `04_siso_graph.svg`
-  - SISO 展开图
-
-### 05 打包阶段
-
-- `05_packet_data.bin`
-- `05_instruction_stream.bin`
-- `05_pack_summary.json`
-
-### 06 汇总阶段
-
-- `06_pipeline_report.md`
-
-## 项目结构
-
-```text
-opensource_flow/
-├── README.md
-├── LICENSE
-├── CONTRIBUTING.md
-├── ROADMAP.md
-├── pyproject.toml
-├── requirements.txt
-├── examples/
-├── docs/
-│   └── assets/
-├── outputs/
-└── src/
-    └── mimo_tvm_flow/
-        ├── adapters.py
-        ├── cli.py
-        ├── model_catalog.py
-        ├── packing.py
-        ├── pytorch_frontend.py
-        ├── siso.py
-        ├── spec.py
-        ├── tvm_lowering.py
-        └── visualize.py
-```
-
-## 设计原则
-
-- 输入规范清晰
-- 每个阶段都有可检查产物
-- 核心逻辑分模块，避免单文件脚本失控
-- 优先保证“可理解、可展示、可二次开发”
-
-## 当前实现边界
-
-- 这是一个开源流程骨架，不是完整的生产级 TVM 后端
-- 当前 TVM lowering 使用的是通用的 Relay 表达，不绑定某个特定硬件后端
-- bin 打包格式是一个通用示例格式，借鉴了 7-word instruction 风格，但不等价于某个特定 FPGA kernel 的完整语义
-- `--problem-model` 使用的是仓库内置模型目录，目的是演示结构适配流程，而不是复刻外部私有工程的全部运行时细节
-
-## 后续建议
-
-- 继续扩展 ONNX 前端
-- 增加真实 grouped ISA 导出
-- 增加 HTML 报告和更复杂的图渲染
-- 为 TVM pass 增加更细粒度统计
+- This project is a workflow skeleton, not a production TVM backend.
+- The demo bin format is illustrative and does not claim compatibility with any specific FPGA runtime.
+- The built-in `--problem-model` path is meant for structure-level adaptation and experimentation.
