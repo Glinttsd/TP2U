@@ -1,8 +1,9 @@
 from __future__ import annotations
 
+import importlib.util
 import json
 from pathlib import Path
-from typing import Dict, List, Tuple
+from typing import Dict, List, Sequence, Tuple
 
 from .spec import GraphSpec, InputSpec, NodeSpec
 
@@ -26,6 +27,75 @@ def _load_demo_builder():
     from pytorch_demo import ToyMIMOBlock, build_demo_model  # type: ignore
 
     return ToyMIMOBlock, build_demo_model
+
+
+def _load_builder_from_script(script_path: Path, entry_name: str):
+    if not script_path.is_file():
+        raise FileNotFoundError(f"PyTorch script not found: {script_path}")
+    module_name = f"mimo_tvm_user_{script_path.stem}"
+    spec = importlib.util.spec_from_file_location(module_name, script_path)
+    if spec is None or spec.loader is None:
+        raise ImportError(f"Unable to import PyTorch script: {script_path}")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    try:
+        return getattr(module, entry_name)
+    except AttributeError as exc:
+        raise AttributeError(f"Builder function {entry_name!r} not found in {script_path}") from exc
+
+
+def _graph_from_bundle(bundle: Dict[str, object], source_name: str) -> Tuple[GraphSpec, Dict[str, object]]:
+    torch = _load_torch()
+    model = bundle["model"]
+    if not isinstance(model, torch.nn.Module):
+        raise TypeError("bundle['model'] must be a torch.nn.Module")
+    model.eval()
+    traced = torch.fx.symbolic_trace(model)
+
+    sample_inputs = bundle["sample_inputs"]
+    if isinstance(sample_inputs, dict):
+        input_specs = [InputSpec(id=str(name), dim=int(tensor.shape[-1])) for name, tensor in sample_inputs.items()]
+    elif isinstance(sample_inputs, (tuple, list)):
+        input_specs = [InputSpec(id=f"x{idx+1}", dim=int(tensor.shape[-1])) for idx, tensor in enumerate(sample_inputs)]
+    else:
+        raise TypeError("bundle['sample_inputs'] must be a dict, tuple, or list of tensors")
+
+    raw_nodes: Sequence[Dict[str, object]] = bundle["nodes"]  # type: ignore[assignment]
+    nodes: List[NodeSpec] = []
+    for raw_node in raw_nodes:
+        nodes.append(
+            NodeSpec(
+                id=str(raw_node["id"]),
+                kind=str(raw_node.get("kind", "pytorch_mimo_block")),
+                connection_mode=str(raw_node["connection_mode"]),
+                input_a=str(raw_node["input_a"]),
+                input_b=str(raw_node["input_b"]),
+                output=str(raw_node["output"]),
+                x1_dim=int(raw_node["x1_dim"]),
+                x2_dim=int(raw_node["x2_dim"]),
+                out_dim=int(raw_node["out_dim"]),
+                weight_dim=int(raw_node["weight_dim"]),
+                multiplicity=int(raw_node.get("multiplicity", 1)),
+                metadata=dict(raw_node.get("metadata", {})),
+            )
+        )
+
+    outputs = bundle.get("outputs")
+    graph = GraphSpec(
+        name=str(bundle.get("graph_name", source_name)),
+        inputs=input_specs,
+        nodes=nodes,
+        outputs=list(outputs) if outputs is not None else ([nodes[-1].output] if nodes else []),
+        metadata={"source": source_name, "frontend": "torch.fx"},
+    )
+    summary = {
+        "source_name": source_name,
+        "model_repr": repr(model),
+        "fx_graph": str(traced.graph),
+        "node_count": len(nodes),
+        "input_dims": {inp.id: inp.dim for inp in input_specs},
+    }
+    return graph, summary
 
 
 def build_graph_from_pytorch_example(example_name: str) -> Tuple[GraphSpec, Dict[str, object]]:
@@ -71,21 +141,43 @@ def build_graph_from_pytorch_example(example_name: str) -> Tuple[GraphSpec, Dict
             )
         )
 
-    graph = GraphSpec(
-        name=f"pytorch_{example_name}",
-        inputs=[InputSpec(id="x1", dim=placeholder_dims["x1"]), InputSpec(id="x2", dim=placeholder_dims["x2"])],
-        nodes=nodes,
-        outputs=[nodes[-1].output] if nodes else [],
-        metadata={"source": "pytorch_demo", "frontend": "torch.fx", "example_name": example_name},
-    )
-
-    summary = {
-        "example_name": example_name,
-        "model_repr": repr(model),
-        "fx_graph": str(traced.graph),
-        "node_count": len(nodes),
-        "input_dims": placeholder_dims,
+    bundle = {
+        "graph_name": f"pytorch_{example_name}",
+        "model": model,
+        "sample_inputs": {"x1": x1_sample, "x2": x2_sample},
+        "nodes": [
+            {
+                "id": node.id,
+                "kind": node.kind,
+                "connection_mode": node.connection_mode,
+                "input_a": node.input_a,
+                "input_b": node.input_b,
+                "output": node.output,
+                "x1_dim": node.x1_dim,
+                "x2_dim": node.x2_dim,
+                "out_dim": node.out_dim,
+                "weight_dim": node.weight_dim,
+                "multiplicity": node.multiplicity,
+                "metadata": node.metadata,
+            }
+            for node in nodes
+        ],
+        "outputs": [nodes[-1].output] if nodes else [],
     }
+    graph, summary = _graph_from_bundle(bundle, source_name="pytorch_demo")
+    summary["example_name"] = example_name
+    summary["input_dims"] = placeholder_dims
+    return graph, summary
+
+
+def build_graph_from_pytorch_script(script_path: Path, entry_name: str = "build_model_bundle") -> Tuple[GraphSpec, Dict[str, object]]:
+    builder = _load_builder_from_script(script_path, entry_name)
+    bundle = builder()
+    if not isinstance(bundle, dict):
+        raise TypeError(f"{entry_name}() must return a dict bundle")
+    graph, summary = _graph_from_bundle(bundle, source_name=script_path.stem)
+    summary["script_path"] = str(script_path)
+    summary["entry_name"] = entry_name
     return graph, summary
 
 

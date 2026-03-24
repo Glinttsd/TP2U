@@ -5,7 +5,7 @@ from pathlib import Path
 
 from .adapters import graph_from_problem_model
 from .packing import pack_siso_units
-from .pytorch_frontend import build_graph_from_pytorch_example, dump_pytorch_frontend_artifacts, write_pytorch_fx_svg
+from .pytorch_frontend import build_graph_from_pytorch_example, build_graph_from_pytorch_script, dump_pytorch_frontend_artifacts, write_pytorch_fx_svg
 from .siso import dump_siso_artifacts, group_siso_units, split_graph_to_siso
 from .spec import dump_graph_spec, load_graph_spec
 from .tvm_lowering import build_relay_module, dump_relay_artifacts
@@ -17,12 +17,14 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--input-json", default=None, help="path to a generic MIMO JSON spec")
     parser.add_argument("--problem-model", default=None, help="adapt a model from the built-in problem-model catalog, e.g. DiffDock-L=1")
     parser.add_argument("--pytorch-example", default=None, help="run a built-in PyTorch frontend example, e.g. tiny_dual_input")
+    parser.add_argument("--pytorch-script", default=None, help="path to a user-provided PyTorch script exposing a builder function")
+    parser.add_argument("--pytorch-entry", default="build_model_bundle", help="builder function name used with --pytorch-script")
     parser.add_argument("--batch-size", type=int, default=3000, help="batch size metadata used by the problem adapter")
     parser.add_argument("--output-dir", required=True, help="output directory for all stage artifacts")
     args = parser.parse_args()
-    mode_count = int(bool(args.input_json)) + int(bool(args.problem_model)) + int(bool(args.pytorch_example))
+    mode_count = int(bool(args.input_json)) + int(bool(args.problem_model)) + int(bool(args.pytorch_example)) + int(bool(args.pytorch_script))
     if mode_count != 1:
-        raise SystemExit("exactly one of --input-json, --problem-model, or --pytorch-example must be provided")
+        raise SystemExit("exactly one of --input-json, --problem-model, --pytorch-example, or --pytorch-script must be provided")
     return args
 
 
@@ -35,6 +37,10 @@ def main() -> int:
         graph = load_graph_spec(Path(args.input_json))
     elif args.pytorch_example:
         graph, frontend_summary = build_graph_from_pytorch_example(args.pytorch_example)
+        dump_pytorch_frontend_artifacts(frontend_summary, output_dir)
+        write_pytorch_fx_svg(frontend_summary, output_dir)
+    elif args.pytorch_script:
+        graph, frontend_summary = build_graph_from_pytorch_script(Path(args.pytorch_script), entry_name=args.pytorch_entry)
         dump_pytorch_frontend_artifacts(frontend_summary, output_dir)
         write_pytorch_fx_svg(frontend_summary, output_dir)
     else:
