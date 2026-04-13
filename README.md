@@ -28,10 +28,10 @@
 The $TP^{2}U$ system consists of a host CPU, high-bandwidth memory (HBM), and the FPGA hardware accelerator.
 
 <p align="center">
-  <img src="assets/architecture.png" alt="Illustration of the Clebsch-Gordan tensor product (CGTP) computation flow" width="300"/>
+  <img src="assets/architecture.png" alt="Illustration of the Clebsch-Gordan tensor product (CGTP) computation flow" width="500"/>
 </p>
 <p align="center">
-  <em>Figure 9: Illustrates the interaction between the CPU, HBM, instruction cache, and the parallel Equicore tiles</sup>.</em>
+  <em>Illustration of the interaction between the CPU, HBM, instruction cache, and the parallel Equicore tiles</sup>.</em>
 </p>
 
 ### Resource Utilization (AMD Virtex VCU128)
@@ -51,14 +51,13 @@ As reported after synthesis and implementation in Vivado 2024.1:
 
 The host CPU partitions MIMO tasks into independent SISO tasks and generates 32-bit customized instructions to orchestrate the hardware.
 
-> **[Insert Figure 13: Customized instructions for executing CGTP operations]** > *(Description: Details the ISA including CFG, SETL, SETN, LOAD, MOVE, EXEC, and HALT instructions.)*
+<p align="center">
+  <img src="assets/workflow.png" alt="Illustration of the Clebsch-Gordan tensor product (CGTP) computation flow" width="600"/>
+</p>
+<p align="center">
+  <em>Illustration of the workflow of our customized software compilation scheme</sup>.</em>
+</p>
 
-### Workflow
-1. **Offline Quantization:** The host performs MSQ on irreps, weights, and CG coefficients.
-2. **Instruction Generation:** The compiler generates a specific instruction stream for each SISO task.
-3. **Deployment:** Instructions are loaded into the FPGA DDR, and data is transferred to HBM via PCIe.
-
----
 
 ## 📊 Experimental Results
 
@@ -73,15 +72,6 @@ Compared to state-of-the-art GPU libraries (e3nn, OpenEquivariance), $TP^{2}U$ d
 <p align="center">
   <em>Figure 15: Speedup and energy efficiency comparison of Equicore with GPU-based works</sup>.</em>
 </p>
-
-### Accuracy Evaluation (Aspirin Dataset)
-| Method | Force MAE (meV/Å) | Energy MAE (meV) | Hardware Friendly |
-| :--- | :--- | :--- | :--- |
-| Full Precision (fp32) | 0.038 | 0.274 | Low  |
-| **TP²U (Ours - Int8)** | **0.309** | **9.18** | **High**  |
-*(Note: While absolute error increases, the relative energy error remains extremely small (<<1%).)*
-
----
 
 ## 📄 License
 
