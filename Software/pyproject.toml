@@ -1,0 +1,32 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "mimo-tvm-flow"
+version = "0.1.0"
+description = "An open-source workflow skeleton for converting generic MIMO specs into TVM IR, splitting into SISO, and packing bin artifacts."
+readme = "README.md"
+requires-python = ">=3.8"
+dependencies = [
+  "apache-tvm==0.11.1",
+  "numpy>=1.24,<2",
+]
+
+[project.optional-dependencies]
+problem-model = [
+  "torch>=2.1",
+  "e3nn>=0.5",
+]
+pytorch = [
+  "torch>=2.1",
+]
+
+[project.scripts]
+mimo-tvm-flow = "mimo_tvm_flow.cli:main"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]

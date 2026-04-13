@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="220" viewBox="0 0 1120 220">
+  <rect width="1120" height="220" fill="#f7f8f4"/>
+  <text x="40" y="40" font-size="26" font-family="Arial, sans-serif" fill="#152238">MIMO TVM Flow</text>
+  <g font-family="Arial, sans-serif">
+    <rect x="40" y="80" width="180" height="90" rx="14" fill="#dce8f7" stroke="#24476b"/>
+    <text x="70" y="118" font-size="18" fill="#1f3552">Input MIMO</text>
+    <text x="64" y="145" font-size="13" fill="#395777">JSON / adapted graph</text>
+
+    <rect x="260" y="80" width="180" height="90" rx="14" fill="#f7e9d7" stroke="#8a5d1f"/>
+    <text x="296" y="118" font-size="18" fill="#6d4714">TVM Importable</text>
+    <text x="301" y="145" font-size="13" fill="#855c24">normalized graph spec</text>
+
+    <rect x="480" y="80" width="180" height="90" rx="14" fill="#e7e3f7" stroke="#54408d"/>
+    <text x="536" y="118" font-size="18" fill="#44336f">Relay IR</text>
+    <text x="520" y="145" font-size="13" fill="#5c4b8e">TVM textual module</text>
+
+    <rect x="700" y="80" width="180" height="90" rx="14" fill="#d8f0de" stroke="#27633c"/>
+    <text x="744" y="118" font-size="18" fill="#1f5130">SISO Split</text>
+    <text x="730" y="145" font-size="13" fill="#34744a">units + grouped view</text>
+
+    <rect x="920" y="80" width="160" height="90" rx="14" fill="#fde0df" stroke="#8f2f34"/>
+    <text x="964" y="118" font-size="18" fill="#75262a">Bin Pack</text>
+    <text x="948" y="145" font-size="13" fill="#96383d">packet_data / instruction</text>
+
+    <line x1="220" y1="125" x2="260" y2="125" stroke="#46627d" stroke-width="4"/>
+    <line x1="440" y1="125" x2="480" y2="125" stroke="#8a6a36" stroke-width="4"/>
+    <line x1="660" y1="125" x2="700" y2="125" stroke="#67528d" stroke-width="4"/>
+    <line x1="880" y1="125" x2="920" y2="125" stroke="#2d6a44" stroke-width="4"/>
+  </g>
+</svg>

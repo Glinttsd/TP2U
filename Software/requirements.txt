@@ -1,0 +1,7 @@
+apache-tvm==0.11.1
+numpy>=1.24,<2
+
+# Optional, needed for the built-in problem-model catalog and the
+# PyTorch example frontend:
+torch>=2.1
+e3nn>=0.5
