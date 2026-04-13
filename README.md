@@ -10,10 +10,10 @@
 ## 📸 Algorithm & Architecture Overview
 
 <p align="center">
-  <img src="assets/compute_dataflow.png" alt="Illustration of the Clebsch-Gordan tensor product (CGTP) computation flow" width="600"/>
+  <img src="assets/challenges.png" alt="challenges and solutions" width="600"/>
 </p>
 <p align="center">
-  <em>Figure 1: Shows the interaction between input irreps, CG coefficients, and learned weights through outer product, Hadamard product, and reduced sum operations <sup></sup>.</em>
+  <em>Challenges and solutions for accelerating ENNs on FPGA <sup></sup>.</em>
 </p>
 
 ### Key Innovations
@@ -39,10 +39,11 @@ As reported after synthesis and implementation in Vivado 2024.1:
 
 | Resource | Used | Available | Utilization |
 | :--- | :--- | :--- | :--- |
-| **BRAM** | 1,796.0 | 2,016 | 89.1%  |
-| **DSP** | 3,840 | 9,024 | 42.55%  |
-| **URAM** | 384.0 | 960 | 40.0%  |
-| **LUT** | 183,306 | 1,303,680 | 14.1%  |
+| **LUT** | 918,138 | 1,303,680 | 70.43% |
+| **FF** | 1,043,328 | 2,607,360 | 40.01% |
+| **BRAM** | 1,896.0 | 2,016 | 94.05% |
+| **URAM** | 864.0 | 960 | 90.0% |
+| **DSP** | 5,888 | 9,024 | 65.25% |
 
 ---
 
