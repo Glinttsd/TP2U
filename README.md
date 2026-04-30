@@ -62,9 +62,6 @@ The host CPU partitions MIMO tasks into independent SISO tasks and generates 32-
 ## 📊 Experimental Results
 
 ### Performance & Efficiency
-Compared to state-of-the-art GPU libraries (e3nn, OpenEquivariance), $TP^{2}U$ delivers:
-* **Speedup:** Up to **10.5x** over e3nn and **5.3x** over OpenEquivariance.
-* **Energy Efficiency:** Up to **17.4x** improvement over e3nn.
 
 <p align="center">
   <img src="assets/latency_and_power_efficiency_comparison_Journal_V1.png" alt="Speedup and energy efficiency comparison of Equicore with GPU-based works" width="600"/>
